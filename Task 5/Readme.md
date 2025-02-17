@@ -1,6 +1,91 @@
+    1 .COUNTER
+
+OVERVIEW:
+
+A sequence counter is a specialized digital counter that follows a predefined sequence rather than a standard binary or decimal count. It is commonly used in embedded systems, digital electronics, and automation applications where a specific counting pattern is required.
+The Squadron Mini Board, powered by a RISC-V processor, provides a flexible platform for implementing such counters using software and hardware approaches.
+This project involves designing and implementing a sequence counter on the Squadron Mini Board, ensuring the counter follows a specific non-linear sequence (e.g., {0, 3, 5, 2, 7, 1}) using GPIO output to visualize the counting pattern. 
+
+COMPONENTS REQURIED:
+
+VSD Squadron Mini Board: RISC-V-based development kit
+Push Button 
+LEDs for visualisation of count
+Breadboard
+Jumper Wires
+Resistors (330 Ohm)
+VS Code with PlatformIO: For writing and Uploading code.
+
+CIRCUIT DIAGRAM:
+
+![WhatsApp Image 2025-02-17 at 21 39 56_3533c81c](https://github.com/user-attachments/assets/dab53c66-1258-4fa6-b8bc-fce7c8614841)
 
 
-DIGITAL VOTING MACHINE
+CODE:
+
+    #include "ch32v00x.h"
+
+    void GPIO_Config(void) {
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE); // Enable GPIOC clock
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE); // Enable GPIOD clock
+
+    GPIO_InitTypeDef GPIO_InitStructure = {0};
+
+    // Configure LEDs (PC0 - PC4) as outputs
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+
+    // Configure Button (PD5) as input with pull-up resistor
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    }
+
+     // Debounce Delay Function
+    void delay_ms(uint32_t ms) {
+    for (volatile uint32_t i = 1000 * ms; i > 0; i--); // Simple delay
+    }
+
+    int main() {
+    uint8_t bit_pattern = 0b00001; // Start with first LED ON
+    SystemCoreClockUpdate();
+    GPIO_Config();
+
+    while (1) {
+        GPIO_Write(GPIOC, bit_pattern); // Update LEDs
+
+        if (GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_5) == 0) { // Button pressed (active low)
+            delay_ms(200); // Debounce delay
+            
+            if (bit_pattern < 0b11111) {  // Shift left only if not full
+                bit_pattern = (bit_pattern << 1) | 0b00001; // Add 1 at LSB
+            } else {
+                bit_pattern = 0b00001; // Reset if all bits are ON
+            }
+
+            while (GPIO_ReadInputDataBit(GPIOD, GPIO_Pin_5) == 0); // Wait until button is released
+        }
+    }
+    }
+    
+CONCLUSION:
+Implementing a sequence counter on the RISC-V Squadron Mini Board demonstrates a practical approach to embedded systems design, combining software and hardware techniques. By leveraging the RISC-V architecture, the counter follows a predefined non-linear sequence and outputs values through GPIO, making it useful for various digital applications.
+
+This project highlights:
+
+✅ Embedded Programming – Writing C and RISC-V assembly to control hardware.
+
+✅ Digital Design – Implementing a finite state machine (FSM) for a sequence counter.
+
+✅ Hardware-Software Integration – Using GPIO for real-world interfacing.
+
+
+
+
+
+    2. DIGITAL VOTING MACHINE
 
 OVERVIEW :
 
@@ -9,23 +94,14 @@ RISC-V (Reduced Instruction Set Computing - Version 5) is an open-source instruc
 COMPONENTS REQURIED:
 
 VSD Squadron Mini Board: RISC-V-based development kit
-
 Push Buttons for voting 
-
 LEDs for vote indication 
-
 Buzzer for the confirmation of the vote 
-
 I2C LCD Display (16x2) 
-
 I2C EEPROM for the vote storage
-
 Breadboard 
-
 Jumper Wires 
-
 Resistors (330 Ohm and 1k Ohm) 
-
 VS Code with PlatformIO: For writing and Uploading code.
 
 CIRCUIT DIAGRAM:
@@ -118,6 +194,5 @@ CODE:
 CONCLUSION:
 
 Digital Voting Machines provide a modern, efficient, and secure method for conducting elections. However, their reliability depends on strong cybersecurity measures, transparency, and voter trust. Future innovations, such as blockchain and AI-driven verification, could further enhance the integrity of digital voting systems.
-
 
 
